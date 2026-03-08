@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📊 সেল হিস্ট্রি - Smart Stock</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box;font-family:'Noto Sans Bengali',sans-serif;}
+    body{background:#fff5f8;color:#333;padding:20px;}
+    header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+    .back-btn{background:#e91e63;color:white;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-weight:bold;}
+    h1{color:#e91e63;text-align:center;flex-grow:1;}
+    .stats-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:20px;}
+    .stat-box{background:#ffe6f2;border:2px solid #e91e63;border-radius:12px;padding:10px;text-align:center;font-weight:bold;color:#e91e63;}
+    .stat-box span{display:block;color:#333;font-size:18px;margin-top:5px;}
+    .search-bar{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-bottom:15px;background:#fff;padding:15px;border-radius:10px;box-shadow:0 2px 5px rgba(0,0,0,0.05);}
+    .search-bar input{padding:10px;border-radius:8px;border:1px solid #e91e63;outline:none;width:180px;}
+    .search-bar button{padding:10px 15px;background:#e91e63;color:#fff;border:none;border-radius:8px;cursor:pointer;font-weight:bold;}
+    .table-responsive{overflow-x:auto;}
+    table{width:100%;border-collapse:collapse;background:#fff;}
+    th,td{border:1px solid #ddd;padding:10px;text-align:center;min-width:100px;}
+    th{background:#f8bbd0;color:#333;}
+    .return-btn{background:#ff9800;color:white;padding:6px 10px;border:none;border-radius:5px;cursor:pointer;font-size:13px;font-weight:bold;}
+    .delete-btn{background:#f44336;color:white;padding:6px 10px;border:none;border-radius:5px;cursor:pointer;font-size:13px;}
+    .returned-text{color: #d32f2f; font-weight: bold;}
+    .sold-text{color: #388e3c; font-weight: bold;}
+  </style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="location.href='home.html'">← ব্যাক</button>
+  <h1>📊 সেল হিস্ট্রি</h1>
+</header>
+
+<div class="search-bar">
+  <input type="text" id="searchProduct" placeholder="🔍 প্রোডাক্ট নাম">
+  <input type="text" id="fromDate" placeholder="শুরু (DD/MM/YYYY)" maxlength="10">
+  <input type="text" id="toDate" placeholder="শেষ (DD/MM/YYYY)" maxlength="10">
+  <button onclick="applyFilters()">ফিল্টার</button>
+  <button style="background:#666;" onclick="clearFilters()">সব দেখাও</button>
+</div>
+
+<div class="stats-container">
+  <div class="stat-box">আজকের সেল <span id="dailyTotal">০</span> টাকা</div>
+  <div class="stat-box">এই মাসের সেল <span id="monthlyTotal">০</span> টাকা</div>
+  <div class="stat-box">মোট সেল <span id="grandTotal">০</span> টাকা</div>
+</div>
+
+<div class="table-responsive">
+  <table id="historyTable">
+    <thead>
+      <tr>
+        <th>📁 ফোল্ডার</th>
+        <th>🛍️ প্রোডাক্ট</th>
+        <th>পরিমাণ</th>
+        <th>দর</th>
+        <th>মোট</th>
+        <th>📅 তারিখ</th>
+        <th>অবস্থা</th>
+        <th>↩️ ফেরত</th>
+        <th>🗑️ ডিলিট</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+// ১. লগইন করা ইউজারের ID চেক করা
+const userId = localStorage.getItem("userId");
+if (!userId) {
+  alert("সেশন শেষ হয়ে গেছে! দয়া করে আবার লগইন করুন।");
+  window.location.href = "index.html"; 
+}
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAylEnnkfCAg75SfkeRHR4lk74vQnQOE4M",
+  authDomain: "business-e835e.firebaseapp.com",
+  databaseURL: "https://business-e835e-default-rtdb.firebaseio.com",
+  projectId: "business-e835e",
+  storageBucket: "business-e835e.firebasestorage.app",
+  messagingSenderId: "484357258128",
+  appId: "1:484357258128:web:ae6a631dc65c47fa2f9115"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let allHistory = [];
+
+// ২. অটো স্ল্যাশ লজিক ও হেল্পার
+const dateInputs = [document.getElementById('fromDate'), document.getElementById('toDate')];
+dateInputs.forEach(input => {
+  input.addEventListener('input', function() {
+    let v = this.value.replace(/\D/g, '').slice(0, 8);
+    if (v.length >= 5) v = v.slice(0, 2) + '/' + v.slice(2, 4) + '/' + v.slice(4);
+    else if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
+    this.value = v;
+  });
+});
+
+function bnEn(str) {
+  if(!str) return "";
+  const n = {'০':'0','১':'1','২':'2','৩':'3','৪':'4','৫':'5','৬':'6','৭':'7','৮':'8','৯':'9'};
+  return str.toString().replace(/[০-৯]/g, w => n[w]);
+}
+
+function toDateObj(str) {
+  if(!str) return null;
+  const clean = bnEn(str);
+  const p = clean.split(/[\/\-\.]/);
+  if(p.length !== 3) return null;
+  return new Date(p[2], p[1] - 1, p[0]);
+}
+
+// ৩. ডাটা লোড (শুধু বর্তমান ইউজারের জন্য)
+const historyRef = db.ref(`users/${userId}/SellHistory`);
+
+historyRef.on("value", snap => {
+  allHistory = [];
+  snap.forEach(c => { allHistory.push({id:c.key, ...c.val()}); });
+  displayHistory(allHistory);
+});
+
+function displayHistory(list) {
+  const tbody = document.querySelector("#historyTable tbody");
+  tbody.innerHTML = "";
+  let tDay = 0, tMonth = 0, tAll = 0;
+  const now = new Date();
+
+  list.sort((a,b) => toDateObj(b.date) - toDateObj(a.date));
+
+  list.forEach(item => {
+    const sDate = toDateObj(item.date);
+    const totalValue = Number(bnEn(item.total)) || 0;
+
+    if(item.status !== "returned") {
+      tAll += totalValue;
+      if(sDate && sDate.toDateString() === now.toDateString()) tDay += totalValue;
+      if(sDate && sDate.getMonth() === now.getMonth() && sDate.getFullYear() === now.getFullYear()) tMonth += totalValue;
+    }
+
+    const isReturned = item.status === "returned";
+
+    tbody.innerHTML += `
+      <tr>
+        <td>${item.folder || '-'}</td>
+        <td>${item.product}</td>
+        <td>${item.soldQuantity} ${item.unit}</td>
+        <td>${item.rate}</td>
+        <td>${item.total}</td>
+        <td>${item.date}</td>
+        <td class="${isReturned ? 'returned-text' : 'sold-text'}">${isReturned ? "🔄 ফেরত" : "✅ বিক্রি"}</td>
+        <td>${isReturned ? '-' : `<button class="return-btn" onclick="returnProduct('${item.id}','${item.folder}','${item.product}','${item.soldQuantity}')">↩ ফেরত</button>`}</td>
+        <td><button class="delete-btn" onclick="deleteItem('${item.id}')">🗑️</button></td>
+      </tr>`;
+  });
+
+  document.getElementById("dailyTotal").innerText = tDay.toLocaleString('bn-BD');
+  document.getElementById("monthlyTotal").innerText = tMonth.toLocaleString('bn-BD');
+  document.getElementById("grandTotal").innerText = tAll.toLocaleString('bn-BD');
+}
+
+// ৪. ইউজার স্পেসিফিক রিটার্ন লজিক
+function returnProduct(historyId, folderName, productName, soldQty) {
+  if(!confirm("পণ্যটি কি স্টকে ফেরত নিতে চান?")) return;
+
+  const folderRef = db.ref(`users/${userId}/folders/${folderName}/products`);
+  folderRef.once("value").then(snap => {
+    const products = snap.val() || {};
+    let foundKey = null;
+    let currentStock = 0;
+
+    for(const key in products) {
+      if(products[key].product === productName) {
+        foundKey = key;
+        currentStock = Number(bnEn(products[key].quantity)) || 0;
+        break;
+      }
+    }
+
+    if(foundKey) {
+      const returnQty = Number(bnEn(soldQty)) || 0;
+      const newQty = currentStock + returnQty;
+
+      db.ref(`users/${userId}/folders/${folderName}/products/${foundKey}`).update({ quantity: newQty })
+      .then(() => {
+        db.ref(`users/${userId}/SellHistory/${historyId}`).update({ status: "returned" });
+        alert("✅ স্টক আপডেট হয়েছে।");
+      });
+    } else {
+      alert("❌ স্টক ফোল্ডারে পণ্যটি পাওয়া যায়নি!");
+    }
+  });
+}
+
+// ৫. ফিল্টার লজিক
+function applyFilters() {
+  const name = document.getElementById("searchProduct").value.trim().toLowerCase();
+  const from = toDateObj(document.getElementById("fromDate").value);
+  const to = toDateObj(document.getElementById("toDate").value);
+
+  const filtered = allHistory.filter(item => {
+    const iDate = toDateObj(item.date);
+    if (iDate) iDate.setHours(0,0,0,0);
+    
+    let mName = item.product.toLowerCase().includes(name);
+    let mDate = true;
+    
+    if (from && iDate) { if (iDate < from) mDate = false; }
+    if (to && iDate) { if (iDate > to) mDate = false; }
+    
+    return mName && mDate;
+  });
+  displayHistory(filtered);
+}
+
+function clearFilters() {
+  document.getElementById("searchProduct").value = "";
+  document.getElementById("fromDate").value = "";
+  document.getElementById("toDate").value = "";
+  displayHistory(allHistory);
+}
+
+function deleteItem(id) {
+  if(confirm("রেকর্ডটি ডিলিট করতে চান?")) db.ref(`users/${userId}/SellHistory/${id}`).remove();
+}
+</script>
+</body>
