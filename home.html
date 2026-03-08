@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏠 হোম - Smart Stock</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins', 'Noto Sans Bengali', sans-serif;}
+  body{background:#fff5f8;color:#333; padding-bottom: 50px;}
+  
+  /* Header Style */
+  header{
+    display:flex;justify-content:space-between;align-items:center;
+    background:#ffb6c1;padding:15px 20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+    position: sticky; top: 0; z-index: 1000;
+  }
+  #backBtn, #menuBtn{
+    background:none;border:none;font-size:24px;cursor:pointer; color: #e91e63;
+  }
+
+  /* Menu Style */
+  #menuList{
+    position:fixed;top:65px;right:20px;background:white;
+    border-radius:12px;box-shadow:0 10px 25px rgba(0,0,0,0.1);
+    display:none;flex-direction:column;width:240px;z-index:100;
+    overflow: hidden; border: 1px solid #ffe4ec;
+  }
+  #menuList a{
+    text-decoration:none;color:#444;padding:15px 20px;border-bottom:1px solid #f9f9f9;
+    font-size: 15px; transition: 0.3s; display: flex; align-items: center; gap: 10px;
+  }
+  #menuList a:hover{background:#fff0f5; color: #e91e63; padding-left: 25px;}
+  #menuList a:last-child{border-bottom: none; color: #f44336;}
+
+  /* Company Profile */
+  .company-info{text-align:center;margin:40px auto 20px; background: white; width: 90%; padding: 25px; border-radius: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);}
+  .company-info img{
+    width:90px;height:90px;border-radius:50%;
+    margin-bottom:15px;border:4px solid #ffb6c1;
+    object-fit: cover; background: #eee;
+  }
+  .company-info h2{color:#e91e63;font-size:24px; margin-bottom: 10px;}
+  .company-info p{font-size:14px; color: #666; margin: 4px 0;}
+
+  /* Hadith Section */
+  .hadith-section{
+    background:white;margin:20px auto;padding:25px;width:90%;
+    border-radius:20px;box-shadow:0 4px 15px rgba(0,0,0,0.05);
+  }
+  .hadith-section h3{
+    text-align:center;color:#e91e63;margin-bottom:20px;font-size:20px;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .hadith{
+    background:#fff9fb;border-right:4px solid #ffb6c1;
+    padding:15px;margin-bottom:15px;border-radius:10px;
+    transition: 0.3s;
+  }
+  .hadith:hover{transform: translateY(-3px); box-shadow: 0 5px 10px rgba(0,0,0,0.05);}
+  .hadith p{margin:5px 0; font-size: 15px; line-height: 1.7;}
+  .hadith span{
+    display:block;margin-top:8px;
+    color:#999;font-size:13px;text-align:right;
+    font-style:italic;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <button id="backBtn">🔙</button>
+  <h2 style="color: #e91e63; font-size: 20px;">Smart Stock</h2>
+  <button id="menuBtn">☰</button>
+  
+  <div id="menuList">
+    <a href="home.html">🏠 হোম</a>
+    <a href="product.html">🛒 প্রোডাক্ট ম্যানেজমেন্ট</a>
+    <a href="stock.html">📦 স্টক রিপোর্ট</a>
+    <a href="sales_history.html">📊 সেল হিস্ট্রি</a>
+    <a href="#" onclick="logout()">🛑 লগআউট</a>
+  </div>
+</header>
+
+<div class="company-info">
+  <img id="logo" src="https://via.placeholder.com/100" alt="Logo">
+  <h2 id="companyName">লোড হচ্ছে...</h2>
+  <p id="companyAddress">📍 ঠিকানা লোড হচ্ছে...</p>
+  <p id="companyPhone">📞 ফোন লোড হচ্ছে...</p>
+</div>
+
+<div class="hadith-section">
+  <h3>📖 ব্যবসার ফজিলত</h3>
+
+  <div class="hadith">
+    <p>🌸 রাসুলুল্লাহ ﷺ বলেছেনঃ  
+    <br>“সত্যবাদী ও বিশ্বস্ত ব্যবসায়ীরা (আখিরাতে) নবীগণ, সিদ্দিকগণ ও শহীদগণের সঙ্গে থাকবে।”</p>
+    <span>— (তিরমিজি, হাদিস: ১২০৯)</span>
+  </div>
+
+  <div class="hadith">
+    <p>💎 রাসুলুল্লাহ ﷺ বলেছেনঃ  
+    <br>“রিজিকের দশ ভাগের নয় ভাগই ব্যবসা-বাণিজ্যে নিহিত।”</p>
+    <span>— (মুসনাদে আহমদ)</span>
+  </div>
+
+  <div class="hadith">
+    <p>✨ রাসুলুল্লাহ ﷺ বলেছেনঃ  
+    <br>“যে ব্যক্তি মানুষকে ধোঁকা দেয়, সে আমার উম্মতের অন্তর্ভুক্ত নয়।”</p>
+    <span>— (সহিহ মুসলিম, হাদিস: ১০১)</span>
+  </div>
+</div>
+
+<script>
+// 🔐 সেশন চেক (লগইন না থাকলে বের করে দিবে)
+const userId = localStorage.getItem("userId");
+if(!userId){
+  window.location.href = "index.html";
+}
+
+// 🔙 ব্যাক বাটন
+document.getElementById("backBtn").addEventListener("click", ()=>{
+  window.history.length > 1 ? history.back() : alert("কোনো পূর্ববর্তী পেজ নেই!");
+});
+
+// ☰ মেনু টগল
+const menuBtn = document.getElementById('menuBtn');
+const menuList = document.getElementById('menuList');
+menuBtn.onclick = (e)=>{
+  e.stopPropagation();
+  menuList.style.display = (menuList.style.display==='flex') ? 'none' : 'flex';
+};
+
+// মেনুর বাইরে ক্লিক করলে মেনু বন্ধ হবে
+document.onclick = (e)=>{
+  if(!menuBtn.contains(e.target) && !menuList.contains(e.target)){
+    menuList.style.display = 'none';
+  }
+};
+
+// ✅ কোম্পানির তথ্য লোড করা (LocalStorage থেকে)
+const company = JSON.parse(localStorage.getItem("companyData"));
+if(company){
+  document.getElementById('companyName').innerText = company.name || "কোম্পানির নাম নেই";
+  document.getElementById('companyPhone').innerText = "📞 " + (company.phone || "ফোন নম্বর নেই");
+  document.getElementById('companyAddress').innerText = "📍 " + (company.address || "ঠিকানা নেই");
+  if(company.logo) document.getElementById('logo').src = company.logo;
+}
+
+// 🛑 লগআউট ফাংশন
+function logout(){
+  if(confirm("আপনি কি নিশ্চিতভাবে লগআউট করতে চান?")){
+    localStorage.clear(); // সব ডেটা মুছে ফেলা
+    window.location.href = "index.html"; // লগইন পেজে পাঠানো
+  }
+}
+</script>
+
+</body>
+</html>
