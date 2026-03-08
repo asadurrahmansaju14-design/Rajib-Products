@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Product Management - Smart Stock</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins', 'Noto Sans Bengali',sans-serif;}
+body{background:#fff5f8;color:#333;min-height:100vh;}
+header{
+  display:flex; justify-content:space-between; align-items:center;
+  background:#ffb6c1; padding:12px 18px; color:#e91e63;
+  position:sticky; top:0; z-index: 1000; box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+header h1{font-size:18px;}
+.menu-btn{font-size:24px; cursor:pointer;}
+.back-btn{font-size:24px; cursor:pointer; background:none; border:none; color:#e91e63;}
+
+.menu-list{
+  position:absolute; top:60px; right:18px; background:#fff;
+  border-radius:12px; box-shadow:0 8px 20px rgba(0,0,0,0.15);
+  overflow:hidden; display:none; width: 200px; border: 1px solid #ffe4ec;
+}
+.menu-list a{
+  display:block; padding:12px 16px; text-decoration:none; color:#444; border-bottom:1px solid #f9f9f9; font-size: 14px;
+}
+.menu-list a:hover{background:#fff0f5; color: #e91e63;}
+
+.container{padding:15px;}
+
+/* Section Styles */
+section{display:none; background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);}
+h2{color:#e91e63; margin-bottom:15px; font-size: 20px; text-align: center;}
+
+/* হাদিস সেকশন ডিজাইন */
+.hadith-card {
+    background: #fff9fb;
+    border-left: 4px solid #ff69b4;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+}
+.hadith-card strong { color: #e91e63; display: block; margin-bottom: 5px; font-size: 15px; }
+.hadith-card p { font-size: 14px; line-height: 1.6; color: #555; }
+
+/* Inputs & Buttons */
+input, select{padding:12px; width:100%; margin-bottom:12px; border:1px solid #ffdae9; border-radius:10px; outline: none;}
+input:focus{border-color: #ff80aa;}
+button{padding:12px 15px; border:none; border-radius:10px; cursor:pointer; font-weight:bold; transition: 0.3s;}
+.create-btn{background:#4CAF50; color:#fff; width: 100%;}
+.add-product-btn{background:#ff69b4; color:#fff; width: 100%; margin-top: 5px;}
+.confirm-btn{background:#28a745; color:#fff; width: 100%; margin-top: 10px;}
+.edit-btn{background:#007bff; color:#fff; padding: 5px 8px; font-size: 12px;}
+.delete-btn{background:#f44336; color:#fff; padding: 5px 8px; font-size: 12px;}
+
+/* Folder List */
+.folder-card{
+  background:#fff9fb; border: 1px solid #ffdae9; border-radius:12px;
+  padding:12px 15px; margin-bottom:10px;
+  display:flex; justify-content:space-between; align-items:center;
+}
+.folder-info{display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1;}
+.search-area{display:flex; gap:8px; margin-bottom:15px;}
+
+/* Table */
+.table-res{overflow-x: auto; margin-top: 15px;}
+table{width:100%; border-collapse:collapse; min-width: 500px;}
+th, td{border:1px solid #f2f2f2; padding:10px; text-align:center; font-size: 13px;}
+th{background:#fff0f5; color:#e91e63;}
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" id="backBtn">🔙</button>
+  <h1>📦 প্রোডাক্ট ম্যানেজমেন্ট</h1>
+  <div class="menu-btn" id="menuBtn">☰</div>
+  <div class="menu-list" id="menuList">
+    <a href="#" id="homeLink">🏠 হোম</a>
+    <a href="#" id="createFolderLink">📁 ফোল্ডার তৈরি</a>
+    <a href="#" id="folderListLink">📝 ফোল্ডার লিস্ট</a>
+    <a href="home.html">🔙 মেইন মেনু</a>
+  </div>
+</header>
+
+<div class="container">
+  <section id="homePage" style="display: block;">
+    <h2 style="margin-bottom: 20px;">📜 ব্যবসার ইসলামী মূলনীতি</h2>
+    
+    <div class="hadith-card">
+        <strong>✨ সত্যবাদিতার পুরস্কার:</strong>
+        <p>"সত্যবাদী ও বিশ্বস্ত ব্যবসায়ী কিয়ামতের দিন নবীগণ, সিদ্দিকগণ এবং শহীদগণের সঙ্গে থাকবেন।" (তিরমিজি)</p>
+    </div>
+
+    <div class="hadith-card">
+        <strong>⚖️ সঠিক পরিমাপ:</strong>
+        <p>"দুর্ভোগ তাদের জন্য যারা মাপে কম দেয়, যারা লোকজনের কাছ থেকে মেপে নেওয়ার সময় পূর্ণমাত্রায় নেয় এবং যখন তাদের মেপে দেয় তখন কমিয়ে দেয়।" (সূরা আল-মুতাফফিফিন: ১-৩)</p>
+    </div>
+
+    <div class="hadith-card">
+        <strong>🚫 ধোঁকা ও প্রতারণা:</strong>
+        <p>"যে ব্যক্তি ধোঁকা দেয়, সে আমার উম্মতের অন্তর্ভুক্ত নয়।" (সহীহ মুসলিম)</p>
+    </div>
+
+    <div class="hadith-card">
+        <strong>💎 আমানতদারিতা:</strong>
+        <p>"ব্যবসায়ীরা কিয়ামতের দিন পাপাচারী হিসেবে উত্থিত হবে, তবে যারা আল্লাহকে ভয় করবে, নেক কাজ করবে এবং সততা বজায় রাখবে তারা ব্যতীত।" (ইবনে মাজাহ)</p>
+    </div>
+
+    <button class="add-product-btn" onclick="showSection(folderCreate)">নতুন কাজ শুরু করুন ➡️</button>
+  </section>
+
+  <section id="folderCreate">
+    <h2>📁 নতুন ফোল্ডার তৈরি</h2>
+    <input type="text" id="folderName" placeholder="ফোল্ডারের নাম লিখুন (উদা: কসমেটিকস)">
+    <button class="create-btn" id="createFolderBtn">✅ ফোল্ডার নিশ্চিত করুন</button>
+  </section>
+
+  <section id="folderList">
+    <div id="folderListView">
+        <div class="search-area">
+          <input type="text" id="searchBox" placeholder="ফোল্ডার সার্চ করুন...">
+        </div>
+        <div id="folderContainer"></div>
+    </div>
+
+    <div id="productDetailView" style="display: none;">
+        <button onclick="backToFolders()" style="background: #666; color: white; margin-bottom: 10px; padding: 5px 10px; font-size: 12px;">⬅️ ফোল্ডার লিস্টে ফিরুন</button>
+        <h3 id="currentFolderName" style="color: #e91e63; margin-bottom: 10px;"></h3>
+        
+        <div id="productForm" style="background: #fff0f5; padding: 15px; border-radius: 12px;">
+          <input type="text" id="productName" placeholder="প্রোডাক্টের নাম">
+          <div style="display: flex; gap: 5px;">
+              <input type="number" id="quantity" placeholder="পরিমাণ">
+              <select id="unit" style="width: 100px;">
+                <option>পিছ</option><option>ডজন</option><option>প্যাকেট</option><option>কেজি</option><option>লিটার</option>
+              </select>
+          </div>
+          <input type="number" id="unitPrice" placeholder="ক্রয় মূল্য (প্রতি ইউনিট)">
+          <input type="text" id="totalPrice" placeholder="মোট ক্রয় মূল্য" readonly style="background: #eee;">
+          <button class="confirm-btn" id="confirmProductBtn">➕ প্রোডাক্ট সেভ করুন</button>
+        </div>
+
+        <div class="table-res">
+          <table>
+            <thead>
+              <tr>
+                <th>নাম</th>
+                <th>স্টক</th>
+                <th>দর</th>
+                <th>মোট</th>
+                <th>অ্যাকশন</th>
+              </tr>
+            </thead>
+            <tbody id="productBody"></tbody>
+          </table>
+        </div>
+    </div>
+  </section>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+const userId = localStorage.getItem("userId");
+if(!userId) window.location.href = "index.html";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAylEnnkfCAg75SfkeRHR4lk74vQnQOE4M",
+  authDomain: "business-e835e.firebaseapp.com",
+  databaseURL: "https://business-e835e-default-rtdb.firebaseio.com",
+  projectId: "business-e835e",
+  storageBucket: "business-e835e.firebasestorage.app",
+  messagingSenderId: "484357258128",
+  appId: "1:484357258128:web:ae6a631dc65c47fa2f9115"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const menuBtn = document.getElementById('menuBtn');
+const menuList = document.getElementById('menuList');
+menuBtn.onclick = (e) => {
+    e.stopPropagation();
+    menuList.style.display = menuList.style.display === 'block' ? 'none' : 'block';
+};
+document.onclick = () => menuList.style.display = 'none';
+
+function showSection(section){
+  document.querySelectorAll('section').forEach(s => s.style.display = 'none');
+  section.style.display = 'block';
+}
+
+document.getElementById('homeLink').onclick = () => showSection(document.getElementById('homePage'));
+document.getElementById('createFolderLink').onclick = () => showSection(document.getElementById('folderCreate'));
+document.getElementById('folderListLink').onclick = () => {
+    showSection(document.getElementById('folderList'));
+    backToFolders();
+    loadFolders();
+};
+document.getElementById('backBtn').onclick = () => history.back();
+
+document.getElementById('createFolderBtn').onclick = () => {
+  const name = document.getElementById('folderName').value.trim();
+  if(!name) return alert('দয়া করে ফোল্ডারের নাম দিন');
+  db.ref(`users/${userId}/folders/${name}`).set({ createdAt: Date.now() })
+  .then(() => {
+      alert('ফোল্ডার তৈরি হয়েছে ✅');
+      document.getElementById('folderName').value = '';
+      showSection(document.getElementById('folderList'));
+      loadFolders();
+  });
+};
+
+function loadFolders(){
+  const container = document.getElementById('folderContainer');
+  db.ref(`users/${userId}/folders`).on('value', snap => {
+    container.innerHTML = '';
+    snap.forEach(child => {
+      const div = document.createElement('div');
+      div.className = 'folder-card';
+      div.innerHTML = `
+        <div class="folder-info" onclick="openFolder('${child.key}')">📁 <b>${child.key}</b></div>
+        <button class="delete-btn" onclick="deleteFolder('${child.key}')">🗑</button>
+      `;
+      container.appendChild(div);
+    });
+  });
+}
+
+function deleteFolder(name){
+    if(confirm(`"${name}" ডিলিট করলে এর সব ডেটা মুছে যাবে। আপনি কি নিশ্চিত?`)){
+        db.ref(`users/${userId}/folders/${name}`).remove();
+    }
+}
+
+let currentFolder = "";
+function openFolder(name){
+    currentFolder = name;
+    document.getElementById('folderListView').style.display = 'none';
+    document.getElementById('productDetailView').style.display = 'block';
+    document.getElementById('currentFolderName').innerText = "ফোল্ডার: " + name;
+    loadProducts(name);
+}
+
+function backToFolders(){
+    document.getElementById('folderListView').style.display = 'block';
+    document.getElementById('productDetailView').style.display = 'none';
+}
+
+const qtyInp = document.getElementById('quantity');
+const priceInp = document.getElementById('unitPrice');
+const totalInp = document.getElementById('totalPrice');
+
+[qtyInp, priceInp].forEach(el => el.oninput = () => {
+    totalInp.value = (Number(qtyInp.value) * Number(priceInp.value)) || 0;
+});
+
+document.getElementById('confirmProductBtn').onclick = () => {
+    const pName = document.getElementById('productName').value.trim();
+    const qty = qtyInp.value;
+    const unit = document.getElementById('unit').value;
+    const price = priceInp.value;
+    const total = totalInp.value;
+
+    if(!pName || !qty || !price) return alert('সব তথ্য পূরণ করুন');
+
+    db.ref(`users/${userId}/folders/${currentFolder}/products`).push({
+        product: pName, quantity: qty, unit: unit, rate: price, total: total
+    }).then(() => {
+        document.getElementById('productName').value = '';
+        qtyInp.value = ''; priceInp.value = ''; totalInp.value = '';
+    });
+};
+
+function loadProducts(folder){
+    db.ref(`users/${userId}/folders/${folder}/products`).on('value', snap => {
+        const tbody = document.getElementById('productBody');
+        tbody.innerHTML = '';
+        snap.forEach(child => {
+            const d = child.val();
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${d.product}</td>
+                <td>${d.quantity} ${d.unit}</td>
+                <td>${d.rate}</td>
+                <td>${d.total}</td>
+                <td><button class="delete-btn" onclick="deleteProduct('${child.key}')">🗑</button></td>
+            `;
+            tbody.appendChild(tr);
+        });
+    });
+}
+
+function deleteProduct(id){
+    if(confirm('প্রোডাক্টটি ডিলিট করতে চান?')) {
+        db.ref(`users/${userId}/folders/${currentFolder}/products/${id}`).remove();
+    }
+}
+
+document.getElementById('searchBox').oninput = (e) => {
+    const term = e.target.value.toLowerCase();
+    document.querySelectorAll('.folder-card').forEach(card => {
+        card.style.display = card.innerText.toLowerCase().includes(term) ? 'flex' : 'none';
+    });
+};
+</script>
+</body>
+</html>
