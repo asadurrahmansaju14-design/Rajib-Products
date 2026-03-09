@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>📦 স্টক সিস্টেম - Smart Stock</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;font-family:'Poppins', 'Noto Sans Bengali', sans-serif;}
+  body{background:#fff5f8;color:#333;padding:20px;}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;}
+  .back-btn{
+    background:#e91e63;color:white;border:none;border-radius:8px;
+    padding:8px 14px;cursor:pointer;font-size:16px;font-weight:bold;
+    box-shadow:0 2px 5px rgba(0,0,0,0.2);transition:0.3s;
+  }
+  .back-btn:hover{background:#d81b60;}
+  h1{color:#e91e63;text-align:center; flex: 1; font-size: 22px;}
+
+  #totalStockBox {
+    background: white; border-radius: 15px; padding: 20px; text-align: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 25px;
+    border-bottom: 4px solid #e91e63;
+  }
+  #totalStockBox p { font-size: 14px; color: #666; }
+  #totalStock { font-size: 28px; font-weight: bold; color: #e91e63; margin-top: 5px; }
+
+  .search-container { display: flex; gap: 10px; margin-bottom: 20px; }
+  input[type="text"], input[type="number"]{ flex: 1; padding: 12px; border: 1px solid #ffdae9; border-radius: 10px; outline: none; }
+  
+  h2{ font-size: 18px; color: #e91e63; margin-bottom: 10px; border-left: 4px solid #e91e63; padding-left: 10px; }
+  ul{list-style:none;}
+  .folder-item {
+    background: white; margin-bottom: 10px; border-radius: 12px; 
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05); overflow: hidden;
+  }
+  .folder-header {
+    padding: 15px; display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+  }
+  .folder-header:hover { background: #fff0f5; }
+
+  .table-res { overflow-x: auto; display: none; padding: 0 15px 15px 15px; }
+  table{width:100%; border-collapse:collapse; min-width: 550px;}
+  th, td{border:1px solid #f2f2f2; padding:10px; text-align:center; font-size: 13px;}
+  th{background:#fff0f5; color:#e91e63;}
+
+  .sell-input { width: 70px !important; padding: 5px !important; border: 1px solid #ddd; border-radius: 5px; text-align: center; }
+  .sell-btn { background: #28a745; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; transition: 0.2s; }
+  .sell-btn:active { transform: scale(0.9); }
+  .sell-btn:disabled { background: #ccc; cursor: not-allowed; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="back-btn" onclick="location.href='home.html'">← ব্যাক</button>
+  <h1>📦 স্টক সিস্টেম</h1>
+  <div style="width:50px;"></div>
+</header>
+
+<div id="totalStockBox">
+  <p>আপনার দোকানের মোট ইনভেন্টরি ভ্যালু</p>
+  <div id="totalStock">৳ ০.০০</div>
+</div>
+
+<div class="search-container">
+  <input type="text" id="searchInput" placeholder="প্রোডাক্ট বা ফোল্ডার খুঁজুন..." oninput="searchFolder()">
+</div>
+
+<h2>ফোল্ডার ভিত্তিক স্টক</h2>
+<ul id="folderList">
+  <p style="text-align:center; padding:20px; color:#999;">ডাটা লোড হচ্ছে...</p>
+</ul>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+<script>
+// ১. সেশন ও কনফিগ
+const userId = localStorage.getItem("userId");
+if(!userId) window.location.href = "index.html";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAylEnnkfCAg75SfkeRHR4lk74vQnQOE4M",
+  authDomain: "business-e835e.firebaseapp.com",
+  databaseURL: "https://business-e835e-default-rtdb.firebaseio.com",
+  projectId: "business-e835e",
+  storageBucket: "business-e835e.firebasestorage.app",
+  messagingSenderId: "484357258128",
+  appId: "1:484357258128:web:ae6a631dc65c47fa2f9115"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+let foldersData = {};
+let openFolders = new Set(); 
+
+// ২. রিয়েল-টাইম ডাটা লিসেনার
+function loadStockData(){
+  db.ref(`users/${userId}/folders`).on('value', snap => {
+    foldersData = snap.val() || {};
+    refreshUI();
+  });
+}
+
+function refreshUI() {
+  const term = document.getElementById('searchInput').value.toLowerCase();
+  if (!term) {
+    renderFolders(Object.keys(foldersData));
+  } else {
+    searchFolder(); 
+  }
+  calculateGrandTotal();
+}
+
+// ৩. রেন্ডারিং
+function renderFolders(folderNames){
+  const list = document.getElementById('folderList');
+  list.innerHTML = '';
+
+  folderNames.forEach(name => {
+    const isVisible = openFolders.has(name) ? 'display:block' : 'display:none';
+    const li = document.createElement('li');
+    li.className = 'folder-item';
+    li.innerHTML = `
+      <div class="folder-header" onclick="toggleTable(this, '${name}')">
+        <span>📁 <b>${name}</b></span>
+        <span style="font-size: 11px; color: #999;">${openFolders.has(name) ? 'বন্ধ করুন ⬆️' : 'ট্যাপ করুন ⬇️'}</span>
+      </div>
+      <div class="table-res" style="${isVisible}">
+        <table>
+          <thead>
+            <tr>
+              <th>প্রোডাক্ট</th>
+              <th>স্টক</th>
+              <th>মূল্য</th>
+              <th>মোট</th>
+              <th>অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody>${renderProducts(name)}</tbody>
+        </table>
+      </div>
+    `;
+    list.appendChild(li);
+  });
+}
+
+function renderProducts(folderName){
+  const products = foldersData[folderName].products || {};
+  let rows = '';
+  for(const id in products){
+    const p = products[id];
+    // এখানে ক্যালকুলেশন চেক করা হচ্ছে UI রেন্ডারের সময়
+    const calculatedTotal = (parseFloat(p.quantity) * parseFloat(p.rate)).toFixed(2);
+    
+    rows += `
+      <tr>
+        <td>${p.product}</td>
+        <td><b style="color: ${p.quantity <= 2 ? 'red' : '#e91e63'};">${p.quantity}</b> ${p.unit}</td>
+        <td>${p.rate}</td>
+        <td>${calculatedTotal}</td>
+        <td>
+          <div style="display:flex; gap:5px; align-items:center; justify-content:center;">
+            <input type="number" id="qty_${id}" class="sell-input" value="1" min="0.1">
+            <button class="sell-btn" onclick="sellItem('${folderName}', '${id}', this)">🛒 সেল</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }
+  return rows || '<tr><td colspan="5">কোনো প্রোডাক্ট নেই</td></tr>';
+}
+
+function toggleTable(header, folderName){
+  const table = header.nextElementSibling;
+  if(table.style.display === 'block'){
+    table.style.display = 'none';
+    openFolders.delete(folderName);
+  } else {
+    table.style.display = 'block';
+    openFolders.add(folderName);
+  }
+  refreshUI();
+}
+
+// ৪. সেল লজিক (সঠিক গাণিতিক হিসাবসহ)
+async function sellItem(folderName, productId, btn){
+  const sellInput = document.getElementById(`qty_${productId}`);
+  const sellQty = parseFloat(sellInput.value);
+
+  if(isNaN(sellQty) || sellQty <= 0) {
+    alert("সঠিক পরিমাণ লিখুন!");
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerText = "...";
+
+  try {
+    const productRef = db.ref(`users/${userId}/folders/${folderName}/products/${productId}`);
+    const snap = await productRef.get();
+    const data = snap.val();
+    
+    const currentStock = parseFloat(data.quantity);
+    const rate = parseFloat(data.rate);
+
+    if(sellQty > currentStock){
+      alert('❌ স্টকে পর্যাপ্ত মাল নেই!');
+      btn.disabled = false;
+      btn.innerText = "🛒 সেল";
+      return;
+    }
+
+    // নতুন হিসাব: গুণফল যেন ভুল না হয়
+    const newStock = (currentStock - sellQty).toFixed(2);
+    const newTotal = (parseFloat(newStock) * rate).toFixed(2);
+
+    // ডাটাবেজ আপডেট
+    await productRef.update({ 
+      quantity: parseFloat(newStock),
+      total: parseFloat(newTotal)
+    });
+
+    // সেল হিস্ট্রি সেভ
+    await db.ref(`users/${userId}/SellHistory`).push({
+      folder: folderName,
+      product: data.product,
+      soldQuantity: sellQty,
+      unit: data.unit,
+      rate: rate,
+      total: (sellQty * rate).toFixed(2),
+      date: new Date().toLocaleDateString('bn-BD'),
+      time: new Date().toLocaleTimeString('bn-BD'),
+      status: "sold",
+      timestamp: firebase.database.ServerValue.TIMESTAMP
+    });
+
+    sellInput.value = 1;
+
+  } catch (err) {
+    console.error(err);
+    alert("Error: " + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerText = "🛒 সেল";
+  }
+}
+
+// ৫. গ্র্যান্ড টোটাল আপডেট (একদম সাথে সাথে)
+function calculateGrandTotal(){
+  let grandTotal = 0;
+  for(let f in foldersData){
+    const prods = foldersData[f].products || {};
+    for(let p in prods){
+      // প্রতিবার রেট ও পরিমাণের গুণফল যোগ করা হচ্ছে যাতে ভুল না থাকে
+      const pQty = parseFloat(prods[p].quantity || 0);
+      const pRate = parseFloat(prods[p].rate || 0);
+      grandTotal += (pQty * pRate);
+    }
+  }
+  document.getElementById('totalStock').innerText = `৳ ${grandTotal.toLocaleString('bn-BD', {minimumFractionDigits: 2})}`;
+}
+
+// ৬. সার্চ ফিল্টার
+function searchFolder(){
+  const term = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = Object.keys(foldersData).filter(name => {
+    if(name.toLowerCase().includes(term)) return true;
+    const prods = foldersData[name].products || {};
+    return Object.values(prods).some(p => p.product.toLowerCase().includes(term));
+  });
+  renderFolders(filtered);
+}
+
+loadStockData();
+</script>
+</body>
+</html>
